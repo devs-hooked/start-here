@@ -35,42 +35,61 @@ We utilize multiple cloud providers:
 
 ### Our CI/CD Pipeline
 ```mermaid
-graph LR
-    A[Push Code] --> B[GitHub Actions]
+flowchart LR
+    subgraph Pipeline Flow
+    A([Code Push]) --> B[GitHub Actions]
     B --> C[Build Docker Image]
     C --> D[Push to DockerHub]
     D --> E[Create Template]
-    E --> F[Deploy to Endpoint]
-    B -- Status --> G[Discord Notifications]
-    style A fill:#e1f5fe
-    style B fill:#fff3e0
-    style C fill:#f3e5f5
-    style D fill:#e8f5e9
-    style E fill:#fff8e1
-    style F fill:#e8eaf6
-    style G fill:#fce4ec
+    E --> F([Deploy])
+    B -.-> G{Discord}
+    C -.-> G
+    D -.-> G
+    F -.-> G
+    end
+    
+    classDef start fill:#d4ffcc,stroke:#333,stroke-width:2px
+    classDef process fill:#fff4db,stroke:#333,stroke-width:2px
+    classDef notify fill:#ffd4d4,stroke:#333,stroke-width:2px
+    classDef deploy fill:#d4e4ff,stroke:#333,stroke-width:2px
+    
+    class A start
+    class B,C,D,E process
+    class G notify
+    class F deploy
 ```
 
 ### Deployment Process
 ```mermaid
 sequenceDiagram
-    participant Dev as Developer
-    participant Git as GitHub
-    participant CI as GitHub Actions
-    participant DH as DockerHub
-    participant End as Endpoint
-    participant Disc as Discord
-    
-    Dev->>Git: 1. Push Code
-    Git->>CI: 2. Trigger Actions
-    CI->>Disc: 3. Build Started
-    CI->>DH: 4. Push Image
-    Note over DH: Image: gethooked/[app-name]
-    CI->>Disc: 5. Build Complete
-    Dev->>End: 6. Create Template
-    Note over End: Configure:<br/>- Image<br/>- Registry Creds<br/>- Env Variables
-    Dev->>End: 7. Deploy
-    End->>Disc: 8. Deployment Status
+    autonumber
+    participant D as Developer
+    participant G as GitHub
+    participant A as Actions
+    participant H as DockerHub
+    participant E as Endpoint
+    participant N as Discord
+
+    rect rgb(240, 245, 255)
+    Note over D,G: Code Submission
+    D->>G: Push Code
+    G->>A: Trigger Workflow
+    end
+
+    rect rgb(255, 245, 240)
+    Note over A,H: Build & Push
+    A->>N: Build Started
+    A->>H: Push Docker Image
+    A->>N: Build Complete
+    end
+
+    rect rgb(245, 255, 240)
+    Note over D,E: Deployment
+    D->>E: Create Template
+    Note over E: Configure Template:<br/>Image Name<br/>Registry Credentials<br/>Environment Variables
+    D->>E: Deploy Template
+    E->>N: Deployment Status
+    end
 ```
 
 ### Step 1: Dockerfile Creation
